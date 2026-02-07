@@ -1,29 +1,27 @@
-// services/api.ts (or whatever your file is named)
+// services/geminiService.ts
 
+// 1. Get the Key safely
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-const BASE_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export async function sendMessageToAI(message: string) {
+  // 2. Check if the key is actually there
   if (!API_KEY) {
-    console.error("API Key is missing. Check .env.local");
-    throw new Error("API Key is missing");
+    console.error("CRITICAL: VITE_OPENROUTER_API_KEY is missing in Vercel Settings.");
+    return "System Error: API Key is missing. Please add it to Vercel Environment Variables.";
   }
 
   try {
-    const response = await fetch(BASE_URL, {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
-        // These headers help OpenRouter track your app
-        "HTTP-Referer": window.location.origin, 
+        "HTTP-Referer": window.location.origin,
         "X-Title": "Stacks Expert"
       },
       body: JSON.stringify({
-        // 1. USE THIS MODEL ID (It is free and fast for testing)
+        // Use the free flash model for testing
         model: "google/gemini-2.0-flash-001",
-        
-        // 2. CRITICAL FIX: Use 'messages' (OpenAI style), NOT 'contents' (Google style)
         messages: [
           {
             role: "user",
@@ -33,18 +31,25 @@ export async function sendMessageToAI(message: string) {
       })
     });
 
+    // 3. Handle HTTP Errors
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || `Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error("OpenRouter API Error:", errorText);
+      return `Error: ${response.status} - ${response.statusText}`;
     }
 
-    const data = await response.json();
+    // 4. Parse JSON safely (using 'any' to prevent Build Errors)
+    const data: any = await response.json();
     
-    // 3. CRITICAL FIX: OpenRouter returns data in 'choices', not 'candidates'
-    return data.choices[0].message.content;
+    // 5. Return the answer
+    if (data.choices && data.choices.length > 0) {
+      return data.choices[0].message.content;
+    } else {
+      return "Error: No response from AI.";
+    }
 
   } catch (error) {
-    console.error("AI Request Failed:", error);
-    throw error;
+    console.error("Network Error:", error);
+    return "System Error: Failed to connect to OpenRouter.";
   }
 }
