@@ -1,7 +1,8 @@
 // @ts-nocheck
 /* eslint-disable */
 
-export async function sendMessageToAI(message) {
+// I renamed this function to 'askStacksAssistant' to match your import in AskStacks.tsx
+export async function askStacksAssistant(message) {
   // Direct access to bypass strict checks
   const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
