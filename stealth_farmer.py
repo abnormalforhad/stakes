@@ -4,7 +4,7 @@ import subprocess
 import time
 
 # --- CONFIGURATION ---
-TOTAL_COMMITS = 50       # How many green squares for today?
+TOTAL_COMMITS = 123       # How many green squares for today?
 FILENAME = "farming_activity.txt" # Changed to .txt to avoid gitignore errors
 # ---------------------
 
